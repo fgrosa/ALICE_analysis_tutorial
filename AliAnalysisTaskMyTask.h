@@ -2,17 +2,22 @@
 /* See cxx source for full Copyright notice */
 /* $Id$ */
 
-#ifndef AliAnalysisTaskMyTask_H
-#define AliAnalysisTaskMyTask_H
+#ifndef AliAnalysisTaskMyTaskWithTree_H
+#define AliAnalysisTaskMyTaskWithTree_H
+
+#include <TTree.h>
+#include <TH1F.h>
+#include <TList.h>
 
 #include "AliAnalysisTaskSE.h"
+#include "AliAODEvent.h"
 
-class AliAnalysisTaskMyTask : public AliAnalysisTaskSE  
+class AliAnalysisTaskMyTaskWithTree : public AliAnalysisTaskSE
 {
     public:
-                                AliAnalysisTaskMyTask();
-                                AliAnalysisTaskMyTask(const char *name);
-        virtual                 ~AliAnalysisTaskMyTask();
+                                AliAnalysisTaskMyTaskWithTree();
+                                AliAnalysisTaskMyTaskWithTree(const char *name);
+        virtual                 ~AliAnalysisTaskMyTaskWithTree();
 
         virtual void            UserCreateOutputObjects();
         virtual void            UserExec(Option_t* option);
@@ -22,11 +27,13 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
         AliAODEvent*            fAOD;           //! input event
         TList*                  fOutputList;    //! output list
         TH1F*                   fHistPt;        //! dummy histogram
+        TTree*                  fOutputTree;    //! output tree
+        Float_t                 fPt;            /// pt of the tracks to be saved in the tree
 
-        AliAnalysisTaskMyTask(const AliAnalysisTaskMyTask&); // not implemented
-        AliAnalysisTaskMyTask& operator=(const AliAnalysisTaskMyTask&); // not implemented
+        AliAnalysisTaskMyTaskWithTree(const AliAnalysisTaskMyTaskWithTree&); // not implemented
+        AliAnalysisTaskMyTaskWithTree& operator=(const AliAnalysisTaskMyTaskWithTree&); // not implemented
 
-        ClassDef(AliAnalysisTaskMyTask, 1);
+        ClassDef(AliAnalysisTaskMyTaskWithTree, 1);
 };
 
 #endif

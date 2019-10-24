@@ -10,8 +10,8 @@ void runAnalysis()
     Bool_t local = kTRUE;
     // if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
     Bool_t gridTest = kTRUE;
-    
-    // since we will compile a class, tell root where to look for headers  
+
+    // since we will compile a class, tell root where to look for headers
 #if !defined (__CINT__) || defined (__CLING__)
     gInterpreter->ProcessLine(".include $ROOTSYS/include");
     gInterpreter->ProcessLine(".include $ALICE_ROOT/include");
@@ -19,7 +19,7 @@ void runAnalysis()
     gROOT->ProcessLine(".include $ROOTSYS/include");
     gROOT->ProcessLine(".include $ALICE_ROOT/include");
 #endif
-     
+
     // create the analysis manager
     AliAnalysisManager *mgr = new AliAnalysisManager("AnalysisTaskExample");
     AliAODInputHandler *aodH = new AliAODInputHandler();
@@ -32,7 +32,8 @@ void runAnalysis()
     // from root6, or the interpreter of root5
 #if !defined (__CINT__) || defined (__CLING__)
     gInterpreter->LoadMacro("AliAnalysisTaskMyTask.cxx++g");
-    AliAnalysisTaskMyTask *task = reinterpret_cast<AliAnalysisTaskMyTask*>(gInterpreter->ExecuteMacro("AddMyTask.C"));
+    AliAnalysisTaskMyTask *task = reinterpret_cast<AliAnalysisTaskMyTask*>(gInterpreter->ExecuteMacro("AddMyTask.C (\"MyTask\", \"_Task1\")"));
+    AliAnalysisTaskMyTask *task2 = reinterpret_cast<AliAnalysisTaskMyTask*>(gInterpreter->ExecuteMacro("AddMyTask.C (\"MyTask\", \"_Task2\")"));
 #else
     gROOT->LoadMacro("AliAnalysisTaskMyTask.cxx++g");
     gROOT->LoadMacro("AddMyTask.C");
@@ -66,12 +67,12 @@ void runAnalysis()
         // set the Alien API version
         alienHandler->SetAPIVersion("V1.1x");
         // select the input data
-        alienHandler->SetGridDataDir("/alice/data/2015/LHC15o");
-        alienHandler->SetDataPattern("*pass1/AOD194/*AOD.root");
+        alienHandler->SetGridDataDir("/alice/data/2018/LHC18r");
+        alienHandler->SetDataPattern("*pass1/*AOD.root");
         // MC has no prefix, data has prefix 000
         alienHandler->SetRunPrefix("000");
         // runnumber
-        alienHandler->AddRunNumber(246994);
+        alienHandler->AddRunNumber(296749);
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(40);
         alienHandler->SetExecutable("myTask.sh");
@@ -82,8 +83,8 @@ void runAnalysis()
         alienHandler->SetOutputToRunNo(kTRUE);
         alienHandler->SetKeepLogs(kTRUE);
         // merging: run with kTRUE to merge on grid
-        // after re-running the jobs in SetRunMode("terminate") 
-        // (see below) mode, set SetMergeViaJDL(kFALSE) 
+        // after re-running the jobs in SetRunMode("terminate")
+        // (see below) mode, set SetMergeViaJDL(kFALSE)
         // to collect final results
         alienHandler->SetMaxMergeStages(1);
         alienHandler->SetMergeViaJDL(kTRUE);
