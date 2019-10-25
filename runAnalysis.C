@@ -7,7 +7,7 @@
 void runAnalysis()
 {
     // set if you want to run the analysis locally (kTRUE), or on grid (kFALSE)
-    Bool_t local = kTRUE;
+    Bool_t local = kFALSE;
     // if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
     Bool_t gridTest = kTRUE;
 
@@ -32,8 +32,9 @@ void runAnalysis()
     // from root6, or the interpreter of root5
 #if !defined (__CINT__) || defined (__CLING__)
     gInterpreter->LoadMacro("AliAnalysisTaskMyTask.cxx++g");
-    AliAnalysisTaskMyTask *task = reinterpret_cast<AliAnalysisTaskMyTask*>(gInterpreter->ExecuteMacro("AddMyTask.C (\"MyTask\", \"_Task1\")"));
-    AliAnalysisTaskMyTask *task2 = reinterpret_cast<AliAnalysisTaskMyTask*>(gInterpreter->ExecuteMacro("AddMyTask.C (\"MyTask\", \"_Task2\")"));
+    AliAnalysisTaskMyTask *task = reinterpret_cast<AliAnalysisTaskMyTask*>(gInterpreter->ExecuteMacro("AddMyTask.C (\"MyTask\", \"noMC\")"));
+    AliAnalysisTaskMyTask *task2 = reinterpret_cast<AliAnalysisTaskMyTask*>(gInterpreter->ExecuteMacro("AddMyTask.C (\"MyTask\", \"MC\")"));
+    task2->SetReadMC(kTRUE); // tell the task to use the MC information
 #else
     gROOT->LoadMacro("AliAnalysisTaskMyTask.cxx++g");
     gROOT->LoadMacro("AddMyTask.C");
@@ -67,12 +68,12 @@ void runAnalysis()
         // set the Alien API version
         alienHandler->SetAPIVersion("V1.1x");
         // select the input data
-        alienHandler->SetGridDataDir("/alice/data/2018/LHC18r");
-        alienHandler->SetDataPattern("*pass1/*AOD.root");
+        alienHandler->SetGridDataDir("/alice/sim/2019/LHC19c3a");
+        alienHandler->SetDataPattern("AOD/*AOD.root");
         // MC has no prefix, data has prefix 000
-        alienHandler->SetRunPrefix("000");
+        //alienHandler->SetRunPrefix("000");
         // runnumber
-        alienHandler->AddRunNumber(296749);
+        alienHandler->AddRunNumber(295666);
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(40);
         alienHandler->SetExecutable("myTask.sh");

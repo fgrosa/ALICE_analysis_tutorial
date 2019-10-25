@@ -1,4 +1,4 @@
-AliAnalysisTaskMyTaskWithTree* AddMyTask(TString name = "name", TString suffix="")
+AliAnalysisTaskMyTask* AddMyTask(TString name = "name", TString suffix="")
 {
     // get the manager via the static access member. since it's static, you don't need
     // to create an instance of the class here to call the function
@@ -16,7 +16,7 @@ AliAnalysisTaskMyTaskWithTree* AddMyTask(TString name = "name", TString suffix="
     TString fileName = AliAnalysisManager::GetCommonFileName();
     fileName += Form(":MyTask%s", suffix.Data());      // create a subfolder in the file
     // now we create an instance of your task
-    AliAnalysisTaskMyTaskWithTree* task = new AliAnalysisTaskMyTaskWithTree(name.Data());
+    AliAnalysisTaskMyTask* task = new AliAnalysisTaskMyTask(name.Data());
     if(!task) return 0x0;
     task->SelectCollisionCandidates(AliVEvent::kAnyINT);
     // add your task to the manager

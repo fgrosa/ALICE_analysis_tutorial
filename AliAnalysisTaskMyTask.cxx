@@ -26,23 +26,25 @@
 #include "AliAnalysisManager.h"
 #include "AliAODEvent.h"
 #include "AliAODInputHandler.h"
-#include "AliAnalysisTaskMyTaskWithTree.h"
+#include "AliAODMCParticle.h"
+#include "AliMCEvent.h"
+#include "AliAnalysisTaskMyTask.h"
 
-class AliAnalysisTaskMyTaskWithTree;    // your analysis class
+class AliAnalysisTaskMyTask;    // your analysis class
 
 using namespace std;            // std namespace: so you can do things like 'cout'
 
-ClassImp(AliAnalysisTaskMyTaskWithTree) // classimp: necessary for root
+ClassImp(AliAnalysisTaskMyTask) // classimp: necessary for root
 
-AliAnalysisTaskMyTaskWithTree::AliAnalysisTaskMyTaskWithTree() : AliAnalysisTaskSE(),
-    fAOD(0), fOutputList(0), fHistPt(0), fOutputTree(0), fPt(0.)
+AliAnalysisTaskMyTask::AliAnalysisTaskMyTask() : AliAnalysisTaskSE(),
+    fAOD(0), fOutputList(0), fHistPt(0), fMCEvent(0), fReadMC(kFALSE), fHistPDG(0), fOutputTree(0), fPt(0.)
 {
     // default constructor, don't allocate memory here!
     // this is used by root for IO purposes, it needs to remain empty
 }
 //_____________________________________________________________________________
-AliAnalysisTaskMyTaskWithTree::AliAnalysisTaskMyTaskWithTree(const char* name) : AliAnalysisTaskSE(name),
-    fAOD(0), fOutputList(0), fHistPt(0), fOutputTree(0), fPt(0.)
+AliAnalysisTaskMyTask::AliAnalysisTaskMyTask(const char* name) : AliAnalysisTaskSE(name),
+    fAOD(0), fOutputList(0), fHistPt(0), fMCEvent(0), fReadMC(kFALSE), fHistPDG(0), fOutputTree(0), fPt(0.)
 {
     // constructor
     DefineInput(0, TChain::Class());    // define the input of the analysis: in this case we take a 'chain' of events
@@ -55,18 +57,18 @@ AliAnalysisTaskMyTaskWithTree::AliAnalysisTaskMyTaskWithTree(const char* name) :
     DefineOutput(2, TTree::Class());    // define a second ouptut of the analysis: in this case it's a tree
 }
 //_____________________________________________________________________________
-AliAnalysisTaskMyTaskWithTree::~AliAnalysisTaskMyTaskWithTree()
+AliAnalysisTaskMyTask::~AliAnalysisTaskMyTask()
 {
     // destructor
     if(fOutputList) {
         delete fOutputList;     // at the end of your task, it is deleted from memory by calling this function
     }
-    if (fOutputTree) {
+    if (fOutputTree) {          // the tree has to be explicitly deleted because it is not in the output list
         delete fOutputTree;
     }
 }
 //_____________________________________________________________________________
-void AliAnalysisTaskMyTaskWithTree::UserCreateOutputObjects()
+void AliAnalysisTaskMyTask::UserCreateOutputObjects()
 {
     // create output objects
     //
@@ -91,7 +93,14 @@ void AliAnalysisTaskMyTaskWithTree::UserCreateOutputObjects()
     fOutputTree->Branch("pT", &fPt);                       // add a branch to the tree
                                                            // the first argument is the name of the branch
                                                            // the second argument is the address of the item that you want to put in your branch
+                                                           // you can add as many branches as you want, but be careful that the size of your tree can be very large!
                                                            // you don't have to add your tree to the output list, since it is a separated output!
+
+    if(fReadMC)                                                   // if read MC information, create histogram with PDG codes
+    {
+        fHistPDG = new TH1F("fHistPDG", "fHistPDG", 500, 0, 500);
+        fOutputList->Add(fHistPDG);
+    }
 
     PostData(1, fOutputList);           // postdata will notify the analysis manager of changes / updates to the
                                         // fOutputList object. the manager will in the end take care of writing your output to file
@@ -99,7 +108,7 @@ void AliAnalysisTaskMyTaskWithTree::UserCreateOutputObjects()
     PostData(2, fOutputTree);           // postdata also the fOutputTree
 }
 //_____________________________________________________________________________
-void AliAnalysisTaskMyTaskWithTree::UserExec(Option_t *)
+void AliAnalysisTaskMyTask::UserExec(Option_t *)
 {
     // user exec
     // this function is called once for each event
@@ -119,16 +128,41 @@ void AliAnalysisTaskMyTaskWithTree::UserExec(Option_t *)
         fPt = track->Pt();
         fHistPt->Fill(fPt);                             // plot the pt value of the track in a histogram
         fOutputTree->Fill();                            // fill tree --> this has to be called only once for all the branches
-    }                                                   // continue until all the tracks are processed
+    }
+
+    if(fReadMC)                                         // if flag for MC information enabled, process MC particles
+    {
+        fMCEvent = MCEvent();                           // get MC event
+        if(!fMCEvent)                                   // if the pointer to the event is empty (getting it failed) skip this event
+            return;
+        ProcessMCParticles();                           // process MC particles calling the method that loops over MC particles
+    }
+                                                        // continue until all the tracks are processed
     PostData(1, fOutputList);                           // stream the results the analysis of this event to
                                                         // the output manager which will take care of writing
                                                         // it to a file
     PostData(2, fOutputTree);
 }
 //_____________________________________________________________________________
-void AliAnalysisTaskMyTaskWithTree::Terminate(Option_t *)
+void AliAnalysisTaskMyTask::Terminate(Option_t *)
 {
     // terminate
     // called at the END of the analysis (when all events are processed)
 }
 //_____________________________________________________________________________
+Bool_t AliAnalysisTaskMyTask::ProcessMCParticles()
+{
+    TClonesArray* AODMCTrackArray = dynamic_cast<TClonesArray*>(fInputEvent->FindListObject(AliAODMCParticle::StdBranchName()));
+    if(!AODMCTrackArray)
+        return kFALSE;
+
+    for(Int_t iPart=0; iPart<AODMCTrackArray->GetEntriesFast(); iPart++)
+    {
+        AliAODMCParticle* part = static_cast<AliAODMCParticle*>(AODMCTrackArray->At(iPart));
+        if(!part)
+            continue;
+        fHistPDG->Fill(part->GetPdgCode());
+    }
+
+    return kTRUE;
+}

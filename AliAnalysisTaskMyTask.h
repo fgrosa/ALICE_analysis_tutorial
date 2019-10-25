@@ -2,38 +2,40 @@
 /* See cxx source for full Copyright notice */
 /* $Id$ */
 
-#ifndef AliAnalysisTaskMyTaskWithTree_H
-#define AliAnalysisTaskMyTaskWithTree_H
-
-#include <TTree.h>
-#include <TH1F.h>
-#include <TList.h>
+#ifndef AliAnalysisTaskMyTask_H
+#define AliAnalysisTaskMyTask_H
 
 #include "AliAnalysisTaskSE.h"
-#include "AliAODEvent.h"
 
-class AliAnalysisTaskMyTaskWithTree : public AliAnalysisTaskSE
+class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
 {
     public:
-                                AliAnalysisTaskMyTaskWithTree();
-                                AliAnalysisTaskMyTaskWithTree(const char *name);
-        virtual                 ~AliAnalysisTaskMyTaskWithTree();
+                                AliAnalysisTaskMyTask();
+                                AliAnalysisTaskMyTask(const char *name);
+        virtual                 ~AliAnalysisTaskMyTask();
 
         virtual void            UserCreateOutputObjects();
         virtual void            UserExec(Option_t* option);
         virtual void            Terminate(Option_t* option);
 
+        void                    SetReadMC(Bool_t activate = kTRUE) {fReadMC = activate;}
+
     private:
+        Bool_t                  ProcessMCParticles();
+
         AliAODEvent*            fAOD;           //! input event
         TList*                  fOutputList;    //! output list
         TH1F*                   fHistPt;        //! dummy histogram
+        AliMCEvent*             fMCEvent;       //! input MC event
+        Bool_t                  fReadMC;        // flag to activate MC
+        TH1F*                   fHistPDG;       //! histogram of pdg codes
         TTree*                  fOutputTree;    //! output tree
         Float_t                 fPt;            /// pt of the tracks to be saved in the tree
 
-        AliAnalysisTaskMyTaskWithTree(const AliAnalysisTaskMyTaskWithTree&); // not implemented
-        AliAnalysisTaskMyTaskWithTree& operator=(const AliAnalysisTaskMyTaskWithTree&); // not implemented
+        AliAnalysisTaskMyTask(const AliAnalysisTaskMyTask&); // not implemented
+        AliAnalysisTaskMyTask& operator=(const AliAnalysisTaskMyTask&); // not implemented
 
-        ClassDef(AliAnalysisTaskMyTaskWithTree, 1);
+        ClassDef(AliAnalysisTaskMyTask, 1);
 };
 
 #endif
